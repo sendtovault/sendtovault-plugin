@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
+	"id": "sendtovault",
+	"name": "SendToVault Plugin",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Send any e-mail straight into your Obsidian vault; Forward an email - turns content into tagged Markdown, ready in seconds.",
+	"author": "SendToVault",
+	"authorUrl": "https://sendtovault.com",
+	"fundingUrl": "https://sendtovault.com/pricing",
 	"isDesktopOnly": false
 }

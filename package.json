@@ -1,15 +1,17 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "sendtovault-plugin",
+	"version": "0.1.0",
+	"description": "Pull new notes from SendToVault service via email integration",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build-and-copy": "npm run build && powershell -ExecutionPolicy Bypass -File copy-to-vault.ps1",
+		"dev-watch": "npm run dev & powershell -ExecutionPolicy Bypass -File copy-to-vault.ps1",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": ["obsidian", "email", "import", "notes"],
+	"author": "SendToVault",
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
