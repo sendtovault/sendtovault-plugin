@@ -58,6 +58,17 @@ SendToVault Plugin Styles
     font-size: 14px;
 }
 
+.sendtovault-sync-button {
+    margin: 12px 0;
+    width: 100%;
+    padding: 8px 12px;
+}
+
+.sendtovault-sync-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .sendtovault-quota {
     margin: 16px 0;
 }

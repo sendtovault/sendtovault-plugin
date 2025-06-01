@@ -105,10 +105,12 @@ export class QuotaPanel extends Component {
 	private quotaUsed: number = 0;
 	private quotaLimit: number = 100;
 	private importsThisMonth: number = 0;
+	private onSyncCallback: (() => Promise<void>) | undefined;
 
-	constructor(containerEl: HTMLElement) {
+	constructor(containerEl: HTMLElement, onSyncCallback?: () => Promise<void>) {
 		super();
 		this.containerEl = containerEl;
+		this.onSyncCallback = onSyncCallback;
 	}
 
 	onload() {
@@ -129,12 +131,36 @@ export class QuotaPanel extends Component {
 	private render() {
 		this.containerEl.empty();
 		
+		console.log('QuotaPanel: Rendering with onSyncCallback:', this.onSyncCallback ? 'present' : 'missing');
+		
 		this.containerEl.createEl('h3', { text: 'SendToVault Status' });
 		
 		// Imports this month
 		const importsEl = this.containerEl.createDiv({ cls: 'sendtovault-imports' });
 		importsEl.createEl('span', { text: 'Imports this month: ' });
 		importsEl.createEl('strong', { text: this.importsThisMonth.toString() });
+		
+		// Sync button
+		if (this.onSyncCallback) {
+			console.log('QuotaPanel: Creating sync button');
+			const syncButton = this.containerEl.createEl('button', { 
+				text: 'Sync Now',
+				cls: 'sendtovault-sync-button mod-cta'
+			});
+			console.log('QuotaPanel: Sync button created:', syncButton);
+			syncButton.onclick = async () => {
+				syncButton.disabled = true;
+				syncButton.textContent = 'Syncing...';
+				try {
+					await this.onSyncCallback!();
+				} finally {
+					syncButton.disabled = false;
+					syncButton.textContent = 'Sync Now';
+				}
+			};
+		} else {
+			console.log('QuotaPanel: No sync callback provided, skipping sync button');
+		}
 		
 		// Quota bar
 		const quotaContainer = this.containerEl.createDiv({ cls: 'sendtovault-quota' });

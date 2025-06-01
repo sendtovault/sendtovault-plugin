@@ -43,6 +43,12 @@ const VIEW_TYPE_SENDTOVAULT = 'sendtovault-quota-panel';
 
 class SendToVaultView extends ItemView {
 	private quotaPanel: QuotaPanel;
+	private plugin: SendToVaultPlugin;
+
+	constructor(leaf: WorkspaceLeaf, plugin: SendToVaultPlugin) {
+		super(leaf);
+		this.plugin = plugin;
+	}
 
 	getViewType() {
 		return VIEW_TYPE_SENDTOVAULT;
@@ -55,7 +61,7 @@ class SendToVaultView extends ItemView {
 	async onOpen() {
 		const container = this.containerEl.children[1];
 		container.empty();
-		this.quotaPanel = new QuotaPanel(container as HTMLElement);
+		this.quotaPanel = new QuotaPanel(container as HTMLElement, () => this.plugin.forceSync());
 		this.quotaPanel.load();
 	}
 
@@ -78,6 +84,7 @@ export default class SendToVaultPlugin extends Plugin {
 	private ribbonIconEl: HTMLElement;
 	private retryDelay: number = 10 * 1000; // 10 seconds initial
 	private maxRetryDelay: number = 30 * 60 * 1000; // 30 minutes max
+	private visibilityChangeHandler: () => void;
 
 	async onload() {
 		await this.loadSettings();
@@ -85,7 +92,7 @@ export default class SendToVaultPlugin extends Plugin {
 		// Register the quota panel view
 		this.registerView(
 			VIEW_TYPE_SENDTOVAULT,
-			(leaf: WorkspaceLeaf) => new SendToVaultView(leaf)
+			(leaf: WorkspaceLeaf) => new SendToVaultView(leaf, this)
 		);
 
 		// Create ribbon icon with badge
@@ -97,6 +104,15 @@ export default class SendToVaultPlugin extends Plugin {
 		// Add settings tab
 		this.addSettingTab(new SendToVaultSettingTab(this.app, this));
 
+		// Set up visibility change handler
+		this.visibilityChangeHandler = () => {
+			if (!document.hidden) {
+				console.log('SendToVault: Document became visible, triggering immediate poll');
+				this.poll();
+			}
+		};
+		document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+
 		// Initialize or start polling
 		if (!this.settings.uid || !this.settings.jwt) {
 			await this.registerWithService();
@@ -107,6 +123,10 @@ export default class SendToVaultPlugin extends Plugin {
 
 	onunload() {
 		this.stopPolling();
+		// Remove visibility change listener
+		if (this.visibilityChangeHandler) {
+			document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+		}
 	}
 
 	async loadSettings() {
@@ -466,6 +486,19 @@ export default class SendToVaultPlugin extends Plugin {
 
 	async rotateAlias(): Promise<void> {
 		await this.registerWithService(true);
+	}
+
+	async forceSync(): Promise<void> {
+		console.log('SendToVault: Force sync triggered');
+		new Notice('Syncing with SendToVault...');
+		
+		try {
+			await this.poll();
+			new Notice('Sync completed!');
+		} catch (error) {
+			console.error('SendToVault: Force sync failed:', error);
+			new Notice('Sync failed. Please try again.');
+		}
 	}
 }
 
